@@ -3,6 +3,7 @@ import sys
 from tools import *
 import tools
 from time import sleep
+from prompt import get_system_prompt
 
 def initialize_bedrock_client():
     return boto3.client('bedrock-runtime',region_name='us-west-2')
@@ -18,17 +19,9 @@ def create_initial_message(repository_path):
         }
     ]
 
-def get_system_prompt():
-    return '''あなたはコード解析が得意な AI です。
-リポジトリのパスを与えます。最初に find ツールを使ってリポジトリの構造を理解した後、見つけたすべてのソースコードを cat ツールで読み、write ツールを用いて plantuml 形式で class 図を ./class.puml というファイル名で作成してください。
-ただしクラス図には必ず class 名、property, method を含めてください。
-また、各作業をする前に人間の入力を元にした AI の思考過程を必ず ./thinking.txt に日本語で残してください。
-AI からの出力に会話は不要で与えたツールだけを使って作業してください。
-'''
-
-def converse_with_model(brt, model_id, messages):
+def converse_with_model(brt, model_id, messages, usecase):
     return brt.converse(
-        system=[{'text': get_system_prompt()}],
+        system=[{'text': get_system_prompt(usecase)}],
         modelId=model_id,
         messages=messages,
         toolConfig={"tools": get_tools()},
@@ -38,10 +31,10 @@ def converse_with_model(brt, model_id, messages):
         },
     )
 
-def retry_converse_with_model(brt, model_id, messages, max_retries=5, sleep_time=5):
+def retry_converse_with_model(brt, model_id, messages, usecase, max_retries=5, sleep_time=5):
     for attempt in range(max_retries):
         try:
-            response = converse_with_model(brt, model_id, messages)
+            response = converse_with_model(brt, model_id, messages, usecase)
             return response
         except Exception as e:
             if attempt < max_retries - 1:
@@ -77,6 +70,7 @@ def process_tool_use(assistant_content,tools:list):
 
 def main():
     repository_path = sys.argv[1]
+    usecase = sys.argv[2]
     brt = initialize_bedrock_client()
     model_id = get_model_id()
     messages = create_initial_message(repository_path)
@@ -84,10 +78,9 @@ def main():
     is_loop = True
     while is_loop:
         try:
-            response = retry_converse_with_model(brt, model_id, messages)
+            response = retry_converse_with_model(brt, model_id, messages, usecase)
         except Exception as e:
             print(f"会話に失敗しました: {e}")
-        
         output = response["output"]
         print(output['message'])
         messages.append(output['message'])
