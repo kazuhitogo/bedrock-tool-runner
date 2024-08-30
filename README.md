@@ -4,6 +4,7 @@ python main.py {repository_path} {usecase}
 ```
 usecase
 - generate_class_diagram
+- generate_activity_diagram
 
 graphviz とか入れましょう
 
