@@ -1,7 +1,9 @@
 # bedrock-tool-runner
 ```bash
-python main.py {repository_path}
+python main.py {repository_path} {usecase}
 ```
+usecase
+- generate_class_diagram
 
 graphviz とか入れましょう
 
