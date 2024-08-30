@@ -1,5 +1,4 @@
-# bedrock-generate-uml
-
+# bedrock-tool-runner
 ```bash
 python main.py {repository_path}
 ```
