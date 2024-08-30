@@ -1,6 +1,7 @@
 import boto3
 import sys
 from tools import *
+import tools
 from time import sleep
 
 def initialize_bedrock_client():
@@ -50,12 +51,20 @@ def retry_converse_with_model(brt, model_id, messages, max_retries=5, sleep_time
                 print(f"最大リトライ回数に達しました。エラー: {e}")
                 raise
 
-def process_tool_use(assistant_content):
+def list_tools():
+    module_attributes = set(dir(tools))
+    imported_functions = [attr for attr in module_attributes if callable(getattr(tools, attr))]
+    return imported_functions
+
+def process_tool_use(assistant_content,tools:list):
     tool_name = assistant_content['toolUse']['name']
     args = assistant_content['toolUse']['input']
+    if tool_name not in tools:
+        raise ValueError(f"Unknown tool: {tool_name}")
+    tool_function = globals()[tool_name]
     
     if tool_name != 'complete':
-        tool_result = eval(tool_name)(**args)
+        tool_result = tool_function(**args)
         print(tool_result)
         return {
             "toolResult": {
@@ -64,14 +73,14 @@ def process_tool_use(assistant_content):
             }
         }, True
     else:
-        return None, eval(tool_name)(**args)
+        return None, tool_function(**args)
 
 def main():
     repository_path = sys.argv[1]
     brt = initialize_bedrock_client()
     model_id = get_model_id()
     messages = create_initial_message(repository_path)
-    
+    tools = list_tools()
     is_loop = True
     while is_loop:
         try:
@@ -86,7 +95,7 @@ def main():
         user_content = []
         for assistant_content in output['message']['content']:
             if 'toolUse' in assistant_content:
-                tool_result, is_loop = process_tool_use(assistant_content)
+                tool_result, is_loop = process_tool_use(assistant_content, tools)
                 if tool_result:
                     user_content.append(tool_result)
             else:
