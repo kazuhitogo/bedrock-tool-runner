@@ -95,6 +95,33 @@ Wildcards can also be used. Examples include HelloWorld.java or *.txt.''',
 tools.append(
     {
         'toolSpec': {
+            'name': 'mkdir_p',
+            # ディレクトリを再帰的に作成するツール
+            # 引数に作成したいディレクトリ名を受け付ける。
+            # 返り値はディレクトリ作成に成功した場合は"Already exists a directory."を返し、既にディレクトリがあった場合は "Directory created successfully" を返し、エラーが発生した場合は "Error:"から始まる文字列を返す。
+            'description': '''A tool to recursively create directories
+Accept the directory name to be created as an argument.
+The return value is "Already exists a directory." if the directory creation is successful, "Directory created successfully" if the directory already existed, and a string starting with "Error:" if an error occurred.''',
+            'inputSchema': {
+                'json': {
+                    'type': 'object',
+                    'properties': {
+                        'directory_name': {
+                            'type': 'string',
+                            # ファイルに書き込みたい内容
+                            'description': 'directory name to be created',
+                        },
+                    },
+                    'required': ['directory_name'],
+                }
+            },
+        }
+    }
+)
+
+tools.append(
+    {
+        'toolSpec': {
             'name': 'write',
             # ファイルにテキストを書き込むツール。
             # 返り値は書き込んだテキストファイルの全文。
@@ -272,6 +299,16 @@ def write(content, write_file_path, mode) -> str:
         return full_content
     except Exception as e:
         return f"Error: An unexpected error occurred: {str(e)}"
+
+def mkdir_p(directory):
+    try:
+        if os.path.exists(directory):
+            return "Already exists a directory."
+        os.makedirs(directory, exist_ok=True)
+        return "Directory created successfully"
+    except Exception as e:
+        # エラーが発生した場合
+        return f"Error: {str(e)}"
 
 def rm(remove_file_path: str) -> str:
     try:
