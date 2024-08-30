@@ -96,9 +96,11 @@ tools.append(
     {
         'toolSpec': {
             'name': 'write',
-            # ファイルにテキストを書き込むツール。返り値には書き込んだファイルのパスが格納される。
+            # ファイルにテキストを書き込むツール。
+            # 返り値は書き込んだテキストファイルの全文。
             # エラーが発生した場合は Error: という文言から始まる言葉が返る。
-            'description': '''A tool to write text to a file. The return value contains the path of the written file.
+            'description': '''A tool to write text to a file.
+The return value is the full text of the written text file.
 If an error occurs, the output will start with "Error:"''',
             'inputSchema': {
                 'json': {
@@ -213,20 +215,12 @@ def get_tools():
     
 def cat(input_file_path: str) -> str:
     try:
-        # ファイルが存在するか確認
         if not os.path.exists(input_file_path):
             return f'Error: not found {input_file_path}'
-
-        # ファイルが読み取り可能か確認
         if not os.access(input_file_path, os.R_OK):
             return f'Error: not have read permission for {input_file_path}'
-
         with open(input_file_path, 'rt') as f:
             return f.read()
-
-    except IOError as e:
-        return f'Error: {e}'
-
     except Exception as e:
         return f'Error: {e}'
 
@@ -249,10 +243,9 @@ def ls(input_directory_path: str) -> str:
 def find(input_directory_path, match_file_name=None):
     matched_files = []
     try:
-        # ディレクトリの存在確認
         if not os.path.isdir(input_directory_path):
             return f"Error: The specified directory was not found {input_directory_path}"
-        for root, dirnames, filenames in os.walk(input_directory_path):
+        for root, _dirnames, filenames in os.walk(input_directory_path):
             try:
                 if match_file_name:
                     for filename_pattern in ([match_file_name] if isinstance(match_file_name, str) else match_file_name):
@@ -266,18 +259,19 @@ def find(input_directory_path, match_file_name=None):
         return f"Error: I do not have access permission to {input_directory_path}."
     except Exception as e:
         return f"Error: {e}"
-
-    # マッチするファイルが見つからなかった場合
     if not matched_files:
-        return "Error: マッチするファイルが見つかりませんでした。"
-
-    # リストを改行区切りの文字列に変換
+        return "Error: No matching files were found."
     return '\n'.join(matched_files)
 
 def write(content, write_file_path, mode) -> str:
-    with open(write_file_path,mode) as f:
-        f.write(content + '\n')
-    return write_file_path
+    try:
+        with open(write_file_path, mode) as f:
+            f.write(content + '\n')
+        with open(write_file_path, 'r') as f:
+            full_content = f.read()
+        return full_content
+    except Exception as e:
+        return f"Error: An unexpected error occurred: {str(e)}"
 
 def rm(remove_file_path: str) -> str:
     try:
@@ -289,8 +283,6 @@ def rm(remove_file_path: str) -> str:
         elif os.path.isdir(normalized_path):
             shutil.rmtree(normalized_path)
         return f'Successfully removed: {normalized_path}'
-    except PermissionError:
-        return f'Error: Permission denied for {normalized_path}'
     except Exception as e:
         return f'Error: {str(e)}'
 
@@ -306,8 +298,6 @@ def rm_recursive(remove_dir_path: str) -> str:
             return f'Error: Cannot remove important system directory {normalized_path}'
         shutil.rmtree(normalized_path)
         return f'Successfully removed directory and its contents {normalized_path}'
-    except PermissionError:
-        return f'Error: Permission denied for {normalized_path}'
     except Exception as e:
         return f'Error: {str(e)}'
 

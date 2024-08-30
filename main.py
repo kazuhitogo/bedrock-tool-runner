@@ -19,10 +19,9 @@ def create_initial_message(repository_path):
 
 def get_system_prompt():
     return '''あなたはコード解析が得意な AI です。
-リポジトリのパスを与えるので、リポジトリから plantuml 形式で class 図を ./class.puml というファイル名で作成してください。
-ただしクラス図には必ず class 名、property, method を含めてください。また見つけたコードはすべて読んでください。
+リポジトリのパスを与えます。最初に find ツールを使ってリポジトリの構造を理解した後、見つけたすべてのソースコードを cat ツールで読み、write ツールを用いて plantuml 形式で class 図を ./class.puml というファイル名で作成してください。
+ただしクラス図には必ず class 名、property, method を含めてください。
 また、各作業をする前に人間の入力を元にした AI の思考過程を必ず ./thinking.txt に日本語で残してください。
-write ツールの at モードで思考を追記でき、AI 自身が cat ツールで読み直すことができます。
 AI からの出力に会話は不要で与えたツールだけを使って作業してください。
 '''
 
