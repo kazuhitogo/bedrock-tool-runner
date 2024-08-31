@@ -4,6 +4,7 @@ from tools import *
 import tools
 from time import sleep
 from prompt import get_system_prompt
+import os
 
 def initialize_bedrock_client():
     return boto3.client('bedrock-runtime',region_name='us-west-2')
@@ -71,6 +72,10 @@ def process_tool_use(assistant_content,tools:list):
 def main():
     repository_path = sys.argv[1]
     usecase = sys.argv[2]
+    print('work directory の初期化')
+    print(rm_recursive('./work'))
+    print(mkdir_p('./work'))
+    print('work directory の初期化完了')
     brt = initialize_bedrock_client()
     model_id = get_model_id()
     messages = create_initial_message(repository_path)
