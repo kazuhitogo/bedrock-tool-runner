@@ -1,6 +1,7 @@
 import os
 import shutil
 import fnmatch
+import requests
 
 tools = []
 tools.append(
@@ -11,8 +12,7 @@ tools.append(
             # エラーが発生した場合は Error: という文言から始まる言葉が返る。
             'description': '''A tool to output the contents of a text file. 
 The return value contains the contents of the text file. 
-If an error occurs, the output will start with "Error:"
-            ''',
+If an error occurs, the output will start with "Error:"''',
             'inputSchema': {
                 'json': {
                     'type': 'object',
@@ -37,8 +37,7 @@ tools.append(
             # ディレクトリの中身とファイルサイズの一覧を取得するツール。出力形式は {file size} {file name}
             # エラーが発生した場合は Error: という文言から始まる言葉が返る。
             'description': '''Tool to get a list of files and their sizes in a directory. Output format is {file size} {file name}.
-If an error occurs, the output will start with "Error:"
-''',
+If an error occurs, the output will start with "Error:"''',
             'inputSchema': {
                 'json': {
                     'type': 'object',
@@ -67,8 +66,7 @@ tools.append(
             'description': '''A tool to display a list of file paths under a specified directory.
 If you provide a file name as an argument, it can also display only the files with the specified file name.
 The file name argument can also use wildcards, such as *.txt, and only the matching files will be output.
-If an error occurs, the output will start with "Error:"
-''',
+If an error occurs, the output will start with "Error:"''',
             'inputSchema': {
                 'json': {
                     'type': 'object',
@@ -77,13 +75,13 @@ If an error occurs, the output will start with "Error:"
                             'type': 'string',
                             'description': 'The path of the directory you would like to confirm',
                         },
-                        'match_file_name':{
+                        'match_file_name': {
                             'type': 'string',
                             # 表示させたいファイル名がわかっている場合の絞り込み文字列。
                             # ワイルドカードも使える。例として、HelloWorld.java や *.txt がなどが入る。
                             'description': '''The filtering string when the file name to be displayed is known. 
 Wildcards can also be used. Examples include HelloWorld.java or *.txt.''',
-                        }
+                        },
                     },
                     'required': ['input_directory_path'],
                 }
@@ -145,10 +143,10 @@ If an error occurs, the output will start with "Error:"''',
                         },
                         'mode': {
                             'type': 'string',
-                            'enum' : ['wt', 'at'],
+                            'enum': ['wt', 'at'],
                             # 上書きならば wt, 追記なら at を格納
                             'description': 'If overwriting, store as "wt", if appending, store as "at".',
-                        }
+                        },
                     },
                     'required': ['content', 'write_file_path'],
                 }
@@ -166,9 +164,8 @@ tools.append(
             # もし、成功したら "Successfully removed: {normalized_path}" という文言が返る
             'description': '''File deletion tool
 If an error occurs, the output will start with "Error:"
-If successful, the message "Successfully removed: {normalized_path}" will be returned.
-''',
-            'inputSchema':{
+If successful, the message "Successfully removed: {normalized_path}" will be returned.''',
+            'inputSchema': {
                 'json': {
                     'type': 'object',
                     'properties': {
@@ -180,8 +177,7 @@ If successful, the message "Successfully removed: {normalized_path}" will be ret
                     },
                     'required': ['remove_file_path'],
                 }
-            }
-            
+            },
         },
     }
 )
@@ -196,19 +192,44 @@ tools.append(
             'description': '''Tool to delete a directory
 If an error occurs, the output will start with "Error:"
 If successful, the message "Successfully removed directory and its contents {normalized_path}" will be returned.''',
-            'inputSchema':{
+            'inputSchema': {
                 'json': {
                     'type': 'object',
                     'properties': {
                         'remove_dir_path': {
                             'type': 'string',
-                            'description': '削除したいディレクトリ名',
+                            # 削除したいディレクトリ名
+                            'description': 'Directory name to be deleted',
                         },
                     },
                     'required': ['remove_dir_path'],
                 }
-            }
-            
+            },
+        },
+    }
+)
+
+tools.append(
+    {
+        'toolSpec': {
+            'name': 'get_url_body',
+            # URL を与えたら URL にアクセスしコンテンツの body を返すツール。
+            # エラーが発生した場合は Error: という文言から始まる言葉が返る。
+            'description': '''A tool that takes a URL and accesses the content's body.
+If an error occurs, the output will start with "Error:"''',
+            'inputSchema': {
+                'json': {
+                    'type': 'object',
+                    'properties': {
+                        'url': {
+                            'type': 'string',
+                            # コンテンツを取得したい URL
+                            'description': 'The URL from which you would like to retrieve content',
+                        },
+                    },
+                    'required': ['url'],
+                }
+            },
         },
     }
 )
@@ -219,7 +240,7 @@ tools.append(
             'name': 'complete',
             # 全ての処理が完了したことを知らせるツール
             'description': 'A tool to notify when all processing is complete',
-            'inputSchema':{
+            'inputSchema': {
                 'json': {
                     'type': 'object',
                     'properties': {
@@ -231,15 +252,16 @@ tools.append(
                     },
                     'required': ['content'],
                 }
-            }
-            
+            },
         },
     }
 )
 
+
 def get_tools():
     return tools
-    
+
+
 def cat(input_file_path: str) -> str:
     try:
         if not os.path.exists(input_file_path):
@@ -251,6 +273,7 @@ def cat(input_file_path: str) -> str:
     except Exception as e:
         return f'Error: {e}'
 
+
 def ls(input_directory_path: str) -> str:
     normalized_path = os.path.normpath(input_directory_path)
     if not os.path.exists(normalized_path) or not os.path.isdir(normalized_path):
@@ -261,34 +284,42 @@ def ls(input_directory_path: str) -> str:
         for file in files:
             file_path = os.path.join(normalized_path, file)
             stats = os.stat(file_path)
-            size = stats.st_size 
+            size = stats.st_size
             output.append(f'{size} {file}')
         return '\n'.join(output)
     except Exception as e:
         return f'Error: {str(e)}'
 
+
 def find(input_directory_path, match_file_name=None):
     matched_files = []
     try:
         if not os.path.isdir(input_directory_path):
-            return f"Error: The specified directory was not found {input_directory_path}"
+            return (
+                f"Error: The specified directory was not found {input_directory_path}"
+            )
         for root, _dirnames, filenames in os.walk(input_directory_path):
             try:
                 if match_file_name:
-                    for filename_pattern in ([match_file_name] if isinstance(match_file_name, str) else match_file_name):
+                    for filename_pattern in (
+                        [match_file_name]
+                        if isinstance(match_file_name, str)
+                        else match_file_name
+                    ):
                         for match in fnmatch.filter(filenames, filename_pattern):
                             matched_files.append(os.path.join(root, match))
                 else:
                     matched_files.extend(os.path.join(root, name) for name in filenames)
             except PermissionError:
-                print(f"Warning: I do not have access permission to {root}. Skipping.")
+                print(f'Warning: I do not have access permission to {root}. Skipping.')
     except PermissionError:
-        return f"Error: I do not have access permission to {input_directory_path}."
+        return f'Error: I do not have access permission to {input_directory_path}.'
     except Exception as e:
-        return f"Error: {e}"
+        return f'Error: {e}'
     if not matched_files:
-        return "Error: No matching files were found."
+        return 'Error: No matching files were found.'
     return '\n'.join(matched_files)
+
 
 def write(content, write_file_path, mode) -> str:
     try:
@@ -298,17 +329,19 @@ def write(content, write_file_path, mode) -> str:
             full_content = f.read()
         return full_content
     except Exception as e:
-        return f"Error: An unexpected error occurred: {str(e)}"
+        return f'Error: An unexpected error occurred: {str(e)}'
+
 
 def mkdir_p(directory):
     try:
         if os.path.exists(directory):
-            return "Already exists a directory."
+            return 'Already exists a directory.'
         os.makedirs(directory, exist_ok=True)
-        return "Directory created successfully"
+        return 'Directory created successfully'
     except Exception as e:
         # エラーが発生した場合
-        return f"Error: {str(e)}"
+        return f'Error: {str(e)}'
+
 
 def rm(remove_file_path: str) -> str:
     try:
@@ -322,6 +355,7 @@ def rm(remove_file_path: str) -> str:
         return f'Successfully removed: {normalized_path}'
     except Exception as e:
         return f'Error: {str(e)}'
+
 
 def rm_recursive(remove_dir_path: str) -> str:
     try:
@@ -338,6 +372,18 @@ def rm_recursive(remove_dir_path: str) -> str:
     except Exception as e:
         return f'Error: {str(e)}'
 
-def complete(content:str) -> bool:
+
+def get_url_body(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.text
+        else:
+            return f'Error: Received status code {response.status_code}'
+    except requests.RequestException as e:
+        return f'Error: {str(e)}'
+
+
+def complete(content: str) -> bool:
     print(content)
     return False
