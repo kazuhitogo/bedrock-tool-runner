@@ -122,10 +122,10 @@ tools.append(
         'toolSpec': {
             'name': 'write',
             # ファイルにテキストを書き込むツール。
-            # 返り値は書き込んだテキストファイルの全文。
+            # 返り値は"File written successfully."
             # エラーが発生した場合は Error: という文言から始まる言葉が返る。
             'description': '''A tool to write text to a file.
-The return value is the full text of the written text file.
+The return value is "File written successfully".
 If an error occurs, the output will start with "Error:"''',
             'inputSchema': {
                 'json': {
@@ -148,7 +148,7 @@ If an error occurs, the output will start with "Error:"''',
                             'description': 'If overwriting, store as "wt", if appending, store as "at".',
                         },
                     },
-                    'required': ['content', 'write_file_path'],
+                    'required': ['content', 'write_file_path', 'mode'],
                 }
             },
         }
@@ -325,9 +325,7 @@ def write(content, write_file_path, mode) -> str:
     try:
         with open(write_file_path, mode) as f:
             f.write(content + '\n')
-        with open(write_file_path, 'r') as f:
-            full_content = f.read()
-        return full_content
+        return 'File written successfully.'
     except Exception as e:
         return f'Error: An unexpected error occurred: {str(e)}'
 

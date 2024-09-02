@@ -1,6 +1,6 @@
 # bedrock-tool-runner
 ```bash
-python main.py {repository_path} {usecase}
+python main.py {usecase} {repository_path}
 ```
 usecase
 - generate_class_diagram
