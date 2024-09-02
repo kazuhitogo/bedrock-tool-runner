@@ -1,6 +1,7 @@
 # bedrock-tool-runner
 ```bash
 python main.py {usecase} {repository_path}
+# ex) python main.py generate_class_diagram test/java-example-repository
 ```
 usecase
 - generate_class_diagram
@@ -10,6 +11,4 @@ graphviz とか入れましょう
 
 ## デモ動画
 
-
-https://github.com/user-attachments/assets/5acabac8-949b-4e5f-b37f-9b0a6b7b102d
-
+https://github.com/user-attachments/assets/dcf75879-8bc5-4a4f-bdfa-d6e85720329c
