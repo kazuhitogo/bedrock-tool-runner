@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 import fnmatch
 import requests
 
@@ -237,6 +238,33 @@ If an error occurs, the output will start with "Error:"''',
 tools.append(
     {
         'toolSpec': {
+            'name': 'run_shell_command',
+            # シェルコマンドを受け取って実行するツール
+            # エラーが発生したら None を返す
+            'description': '''A tool that receives and executes shell commands
+Return None if an error occurs.
+Return standard output if it terminates normally.
+''',
+            'inputSchema': {
+                'json': {
+                    'type': 'object',
+                    'properties': {
+                        'command': {
+                            'type': 'string',
+                            # 処理完了のメッセージ
+                            'description': 'shell command',
+                        },
+                    },
+                    'required': ['command'],
+                }
+            },
+        },
+    }
+)
+
+tools.append(
+    {
+        'toolSpec': {
             'name': 'complete',
             # 全ての処理が完了したことを知らせるツール
             'description': 'A tool to notify when all processing is complete',
@@ -330,11 +358,11 @@ def write(content, write_file_path, mode) -> str:
         return f'Error: An unexpected error occurred: {str(e)}'
 
 
-def mkdir_p(directory):
+def mkdir_p(directory_name):
     try:
-        if os.path.exists(directory):
+        if os.path.exists(directory_name):
             return 'Already exists a directory.'
-        os.makedirs(directory, exist_ok=True)
+        os.makedirs(directory_name, exist_ok=True)
         return 'Directory created successfully'
     except Exception as e:
         # エラーが発生した場合
@@ -380,6 +408,18 @@ def get_url_body(url):
             return f'Error: Received status code {response.status_code}'
     except requests.RequestException as e:
         return f'Error: {str(e)}'
+
+
+def run_shell_command(command):
+    try:
+        # コマンドを実行し、出力を取得
+        result = subprocess.run(
+            command, shell=True, capture_output=True, text=True, check=True
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        print(f"コマンド実行エラー: {e}")
+        return None
 
 
 def complete(content: str) -> bool:

@@ -11,7 +11,7 @@ def initialize_bedrock_client():
 
 
 def get_model_id():
-    return 'us.anthropic.claude-3-5-sonnet-20240620-v1:0'
+    return 'us.anthropic.claude-3-5-sonnet-20241022-v2:0'
 
 
 def create_initial_message(repository_path):

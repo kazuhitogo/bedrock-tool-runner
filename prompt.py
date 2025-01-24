@@ -53,9 +53,27 @@ First, use the find tool to understand the repository structure, programming lan
 Next, read the source code of all the programming languages found using the cat tool, and use the write tool to create an activity diagram in plantuml format, saved as ./work/activity.puml.
 The AI should perform the task quietly using only the provided tools, without any further conversation with the user.'''
 
+bug_buster = '''ユーザーはリポジトリのパスを渡します。
+<<リポジトリの説明>>
+<<エラーの概要>>
+<error>
+</error>
+AI の思考過程を都度 write ツールを使って必ず ./work/thinking.txt に記録してください。
+また、AI はユーザーとの会話は不要なので、与えたツールだけを使って粛々と作業してください。
+'''
+
+app_builder = '''ユーザーは空のリポジトリ(ディレクトリ)を渡します。
+これから現在時刻を表示する Web API を作成してください。
+ただし、必ず AWS CDK で API Gateway + Lambda を使ってください。
+最後にアクセスの仕方も出力してください。
+AI の思考過程を都度 write ツールを使って必ず ./work/thinking.txt に記録してください。
+また、AI はユーザーとの会話は不要なので、与えたツールだけを使って粛々と作業してください。'''
+
 system_prompts = {
     'generate_class_diagram': generate_class_diagram,
     'generate_activity_diagram': generate_activity_diagram,
+    'bug_buster': bug_buster,
+    'app_builder': app_builder,
 }
 
 
