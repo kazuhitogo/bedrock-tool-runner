@@ -213,6 +213,38 @@ If successful, the message "Successfully removed directory and its contents {nor
 tools.append(
     {
         'toolSpec': {
+            # 'name': 'mv',
+            # Linux の mv コマンド相当のツール
+            # directory にも file にも使用可能
+            # エラーが発生した場合は Error: という文言から始まる言葉が返る。
+            # もし、成功したら "Move successful: {source} -> {destination}" という文言が返る
+            'description': '''Linux mv command equivalent tool
+Usable for both directory and file
+If an error occurs, a message starting with "Error: " will be returned.
+If successful, "Move successful: {source} -> {destination}" will be returned''',
+            'inputSchema': {
+                'json': {
+                    'type': 'object',
+                    'properties': {
+                        'source': {
+                            'type': 'string',
+                            'description': 'Directory or file to be moved',
+                        },
+                        'destination': {
+                            'type': 'string',
+                            'description': 'Destination of directory or file',
+                        },
+                    },
+                    'required': ['remove_dir_path'],
+                }
+            },
+        },
+    }
+)
+
+tools.append(
+    {
+        'toolSpec': {
             'name': 'get_url_body',
             # URL を与えたら URL にアクセスしコンテンツの body を返すツール。
             # エラーが発生した場合は Error: という文言から始まる言葉が返る。
@@ -349,7 +381,21 @@ def find(input_directory_path, match_file_name=None):
     return '\n'.join(matched_files)
 
 
-def write(content, write_file_path, mode) -> str:
+def write(content='', write_file_path='', mode='') -> str:
+    # パラメータのチェック
+    error_messages = []
+    if content == '':
+        error_messages.append('content is empty')
+    if write_file_path == '':
+        error_messages.append('write_file_path is empty')
+    if mode == '':
+        error_messages.append('mode is empty')
+
+    # エラーメッセージがある場合は、それらを返す
+    if error_messages:
+        return 'Error: ' + ', '.join(error_messages)
+
+    # すべてのパラメータが正しい場合、ファイル書き込みを実行
     try:
         with open(write_file_path, mode) as f:
             f.write(content + '\n')
@@ -397,6 +443,35 @@ def rm_recursive(remove_dir_path: str) -> str:
         return f'Successfully removed directory and its contents {normalized_path}'
     except Exception as e:
         return f'Error: {str(e)}'
+
+
+def mv(source, destination):
+    try:
+        # Check if source exists
+        if not os.path.exists(source):
+            return f"Error: Source path '{source}' does not exist."
+
+        # Create destination directory if it doesn't exist
+        dest_dir = os.path.dirname(destination)
+        if dest_dir and not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+
+        # Convert to absolute paths
+        abs_source = os.path.abspath(source)
+        abs_destination = os.path.abspath(destination)
+
+        # Move file or directory
+        shutil.move(source, destination)
+
+        # Return success message
+        return f"Move successful: {abs_source} -> {abs_destination}"
+
+    except PermissionError:
+        return f"Error: Permission denied. Cannot move '{source}'."
+    except FileExistsError:
+        return f"Error: Destination '{destination}' already exists."
+    except Exception as e:
+        return f"Error: {e}"
 
 
 def get_url_body(url):
