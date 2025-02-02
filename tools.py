@@ -235,7 +235,7 @@ If successful, "Move successful: {source} -> {destination}" will be returned''',
                             'description': 'Destination of directory or file',
                         },
                     },
-                    'required': ['remove_dir_path'],
+                    'required': ['source', 'destination'],
                 }
             },
         },
@@ -445,7 +445,17 @@ def rm_recursive(remove_dir_path: str) -> str:
         return f'Error: {str(e)}'
 
 
-def mv(source, destination):
+def mv(source='', destination=''):
+    # パラメータのチェック
+    error_messages = []
+    if source == '':
+        error_messages.append('source is empty')
+    if destination == '':
+        error_messages.append('destination is empty')
+
+    # エラーメッセージがある場合は、それらを返す
+    if error_messages:
+        return 'Error: ' + ', '.join(error_messages)
     try:
         # Check if source exists
         if not os.path.exists(source):
