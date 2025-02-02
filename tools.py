@@ -213,7 +213,7 @@ If successful, the message "Successfully removed directory and its contents {nor
 tools.append(
     {
         'toolSpec': {
-            # 'name': 'mv',
+            'name': 'mv',
             # Linux の mv コマンド相当のツール
             # directory にも file にも使用可能
             # エラーが発生した場合は Error: という文言から始まる言葉が返る。
