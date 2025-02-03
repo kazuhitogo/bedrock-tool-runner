@@ -1,4 +1,5 @@
 import boto3
+from botocore.config import Config
 import sys
 from tools import *
 import tools
@@ -7,7 +8,18 @@ from prompt import get_system_prompt
 
 
 def initialize_bedrock_client():
-    return boto3.client('bedrock-runtime', region_name='us-west-2')
+    return boto3.client(
+        'bedrock-runtime',
+        region_name='us-west-2',
+        config=Config(
+            connect_timeout=300,
+            read_timeout=300,
+            retries={
+                "mode": "standard",
+                "total_max_attempts": 5,
+            },
+        ),
+    )
 
 
 def get_model_id():
@@ -29,7 +41,7 @@ def converse_with_model(brt, model_id, messages, usecase):
 
 
 def retry_converse_with_model(
-    brt, model_id, messages, usecase, max_retries=10, sleep_time=7
+    brt, model_id, messages, usecase, max_retries=10, sleep_time=120
 ):
     for attempt in range(max_retries):
         try:

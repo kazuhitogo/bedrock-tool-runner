@@ -274,7 +274,7 @@ tools.append(
             # シェルコマンドを受け取って実行するツール
             # エラーが発生したら None を返す
             'description': '''A tool that receives and executes shell commands
-Return None if an error occurs.
+If an error occurs, the output will start with "Error:"
 Return standard output if it terminates normally.
 ''',
             'inputSchema': {
@@ -503,8 +503,7 @@ def run_shell_command(command):
         )
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        print(f"コマンド実行エラー: {e}")
-        return None
+        return f"Error: {e}"
 
 
 def complete(content: str) -> bool:

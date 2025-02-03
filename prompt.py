@@ -54,26 +54,39 @@ Next, read the source code of all the programming languages found using the cat 
 The AI should perform the task quietly using only the provided tools, without any further conversation with the user.'''
 
 bug_buster = '''ユーザーはリポジトリのパスを渡します。
-<<リポジトリの説明>>
-<<エラーの概要>>
+<error> タグで与えたエラーが発生しました。何が原因なのかと具体的な修正箇所及び修正内容を ./work/thinking.txt に記録してください。
 <error>
 </error>
-AI の思考過程を都度 write ツールを使って必ず ./work/thinking.txt に記録してください。
+結果だけではなく AI の思考過程を都度 write ツールを使って必ず ./work/thinking.txt に記録してください。
 また、AI はユーザーとの会話は不要なので、与えたツールだけを使って粛々と作業してください。
 '''
 
 app_builder = '''ユーザーは空のリポジトリ(ディレクトリ)を渡します。
-これから現在時刻を表示する Web API を作成してください。
-ただし、必ず AWS CDK で API Gateway + Lambda を使ってください。
-最後にアクセスの仕方も出力してください。
+<<作って欲しいもの>>
 AI の思考過程を都度 write ツールを使って必ず ./work/thinking.txt に記録してください。
 また、AI はユーザーとの会話は不要なので、与えたツールだけを使って粛々と作業してください。'''
+
+app_refactor = '''ユーザーはリポジトリのパスを渡します。
+<<リポジトリの説明>>
+<<リファクタリングの内容>>
+またリファクタリングするにあたって、AI の思考過程を都度 write ツールを使って必ず ./work/thinking.txt に記録してください。
+また、AI はユーザーとの会話は不要なので、与えたツールだけを使って粛々と作業してください。
+'''
+
+cobol_to_java = '''
+COBOL のリポジトリを与えます。そのリポジトリと全く同じ機能を Java に書き換えてください。
+書き換え先のリポジトリは <<リポジトリのパス>> です。
+AI の思考過程を都度 write ツールを使って必ず ./work/thinking.txt に記録してください。
+また、AI はユーザーとの会話は不要なので、与えたツールだけを使って粛々と作業してください。
+'''
 
 system_prompts = {
     'generate_class_diagram': generate_class_diagram,
     'generate_activity_diagram': generate_activity_diagram,
     'bug_buster': bug_buster,
     'app_builder': app_builder,
+    'app_refactor': app_refactor,
+    'cobol_to_java': cobol_to_java,
 }
 
 
